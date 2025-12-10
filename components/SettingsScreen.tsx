@@ -1,0 +1,148 @@
+import React, { useState } from 'react';
+import { SettingsState } from '../types';
+import { Save, Eye, EyeOff, Moon, Sun, Monitor, Trash2 } from 'lucide-react';
+
+interface Props {
+  settings: SettingsState;
+  onSave: (settings: SettingsState) => void;
+  onClearHistory: () => void;
+}
+
+const SettingsScreen: React.FC<Props> = ({ settings, onSave, onClearHistory }) => {
+  const [localSettings, setLocalSettings] = useState(settings);
+  const [showKey, setShowKey] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleChange = (key: keyof SettingsState, value: any) => {
+    setLocalSettings(prev => ({ ...prev, [key]: value }));
+    setIsSaved(false);
+  };
+
+  const save = () => {
+    onSave(localSettings);
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
+  };
+
+  return (
+    <div className="space-y-8 pb-10 max-w-2xl mx-auto animate-fade-in">
+       <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Settings</h2>
+        <button 
+          onClick={save}
+          className={`flex items-center px-6 py-2 rounded-lg font-medium transition-all ${
+            isSaved ? 'bg-green-500 text-white' : 'bg-primary text-white hover:bg-blue-600'
+          }`}
+        >
+          <Save size={18} className="mr-2" />
+          {isSaved ? 'Saved!' : 'Save Changes'}
+        </button>
+      </div>
+
+      {/* Theme Section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b border-gray-200 dark:border-gray-700 pb-2">Appearance</h3>
+        <div className="grid grid-cols-2 gap-4">
+           <button 
+             onClick={() => handleChange('theme', 'light')}
+             className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${localSettings.theme === 'light' ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
+           >
+             <Sun size={24} className="mb-2" />
+             <span className="font-medium">Light Mode</span>
+           </button>
+           <button 
+             onClick={() => handleChange('theme', 'dark')}
+             className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${localSettings.theme === 'dark' ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 dark:border-gray-700 text-gray-500'}`}
+           >
+             <Moon size={24} className="mb-2" />
+             <span className="font-medium">Dark Mode</span>
+           </button>
+        </div>
+      </div>
+
+      {/* API Key Section */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b border-gray-200 dark:border-gray-700 pb-2">Gemini API Configuration</h3>
+        <div className="space-y-2">
+           <label className="text-sm font-medium text-gray-600 dark:text-gray-300">Gemini API Key</label>
+           <div className="relative">
+             <input 
+               type={showKey ? "text" : "password"}
+               value={localSettings.geminiApiKey}
+               onChange={(e) => handleChange('geminiApiKey', e.target.value)}
+               className="w-full bg-white dark:bg-[#1f2937] border border-gray-200 dark:border-gray-700 rounded-lg pl-4 pr-12 py-3 outline-none focus:border-primary"
+               placeholder="AIzaSy..."
+             />
+             <button 
+               onClick={() => setShowKey(!showKey)}
+               className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+             >
+               {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
+             </button>
+           </div>
+           <p className="text-xs text-gray-500">Your key is stored locally in your browser and never sent to our servers.</p>
+        </div>
+      </div>
+
+      {/* Preferences */}
+       <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b border-gray-200 dark:border-gray-700 pb-2">User Preferences</h3>
+        
+        <div className="flex items-center justify-between py-2">
+           <span className="text-gray-700 dark:text-gray-300">Default Request Method</span>
+           <select 
+             value={localSettings.defaultMethod}
+             onChange={(e) => handleChange('defaultMethod', e.target.value)}
+             className="bg-gray-50 dark:bg-[#1f2937] border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1 outline-none"
+           >
+             <option>GET</option>
+             <option>POST</option>
+             <option>PUT</option>
+             <option>DELETE</option>
+           </select>
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+           <span className="text-gray-700 dark:text-gray-300">Auto-generate Documentation</span>
+           <button 
+             onClick={() => handleChange('autoGenerateDocs', !localSettings.autoGenerateDocs)}
+             className={`w-12 h-6 rounded-full p-1 transition-colors ${localSettings.autoGenerateDocs ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+           >
+             <div className={`w-4 h-4 bg-white rounded-full transition-transform ${localSettings.autoGenerateDocs ? 'translate-x-6' : ''}`} />
+           </button>
+        </div>
+
+        <div className="flex items-center justify-between py-2">
+           <span className="text-gray-700 dark:text-gray-300">Save Request History</span>
+           <button 
+             onClick={() => handleChange('saveHistory', !localSettings.saveHistory)}
+             className={`w-12 h-6 rounded-full p-1 transition-colors ${localSettings.saveHistory ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+           >
+             <div className={`w-4 h-4 bg-white rounded-full transition-transform ${localSettings.saveHistory ? 'translate-x-6' : ''}`} />
+           </button>
+        </div>
+      </div>
+
+       {/* Data */}
+       <div className="space-y-4 pt-4">
+        <h3 className="text-lg font-semibold border-b border-gray-200 dark:border-gray-700 pb-2 text-red-500">Danger Zone</h3>
+        <button 
+           onClick={() => {
+             if(confirm("Are you sure you want to delete all history?")) onClearHistory();
+           }}
+           className="w-full flex items-center justify-center space-x-2 border border-red-200 dark:border-red-900/30 text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 py-3 rounded-xl transition-colors"
+        >
+          <Trash2 size={18} />
+          <span>Clear All History Data</span>
+        </button>
+      </div>
+
+      <div className="text-center pt-8 text-xs text-gray-400">
+        <p>API Doctor v1.0.0</p>
+        <p className="mt-1">Built with React, Tailwind & Gemini</p>
+      </div>
+    </div>
+  );
+};
+
+export default SettingsScreen;
